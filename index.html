@@ -116,40 +116,46 @@
     </div>
   </div>
 
-  <script>
-    const backendURL = "https://script.google.com/macros/s/AKfycbzGpBD_JAp58XCp6CZaGEsJzE4nWPOtPSVRvMMUdJzsHlz7orwOgs9AK4e1cHt5Gk4_/exec"; // On mettra ton URL ici
+<script>
+const backendURL = "https://script.google.com/macros/s/AKfycbzGpBD_JAp58XCp6CZaGEsJzE4nWPOtPSVRvMMUdJzsHlz7orwOgs9AK4e1cHt5Gk4_/exec";
+let currentLang = "fr";
 
-    async function ask(text) {
-      const input = document.getElementById("userInput");
-      const question = text || input.value.trim();
-      if (!question) return;
+async function sendToAssistant(userInput) {
+  try {
+    appendMessage("Vous", userInput);
 
-      const output = document.getElementById("output");
-      output.innerHTML += `<p><strong>Vous :</strong> ${question}</p>`;
-      input.value = "";
+    const response = await fetch(backendURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question: userInput,
+        lang: currentLang
+      })
+    });
 
-try {
-  const res = await fetch(backendURL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      question: question,
-      lang: currentLang || "fr"
-    }),
-  });
+    const data = await response.json();
 
-  const data = await res.json();
-  output.innerHTML += `<p><strong>Assistant :</strong> ${data.answer}</p>`;
-} catch (e) {
-  output.innerHTML += `<p style='color:red;'>Erreur de communication</p>`;
-  console.error("Erreur :", e);
+    if (data.answer) {
+      appendMessage("Assistant", data.answer);
+    } else {
+      appendMessage("Assistant", "Désolé, une erreur est survenue 😔");
+      console.error(data);
+    }
+
+  } catch (error) {
+    appendMessage("Assistant", "Erreur de communication avec le serveur ⚠️");
+    console.error(error);
+  }
 }
 
-
-      output.scrollTop = output.scrollHeight;
-    }
-  </script>
+function appendMessage(sender, text) {
+  const chat = document.getElementById("chat");
+  const msg = document.createElement("div");
+  msg.className = sender === "Vous" ? "userMsg" : "botMsg";
+  msg.innerText = `${sender}: ${text}`;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
 </body>
 </html>
