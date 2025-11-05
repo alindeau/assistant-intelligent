@@ -128,13 +128,25 @@
       output.innerHTML += `<p><strong>Vous :</strong> ${question}</p>`;
       input.value = "";
 
-      try {
-        const res = await fetch(backendURL + "?q=" + encodeURIComponent(question));
-        const data = await res.json();
-        output.innerHTML += `<p><strong>Assistant :</strong> ${data.answer}</p>`;
-      } catch (e) {
-        output.innerHTML += `<p style='color:red;'>Erreur de communication</p>`;
-      }
+try {
+  const res = await fetch(backendURL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      question: question,
+      lang: currentLang || "fr"
+    }),
+  });
+
+  const data = await res.json();
+  output.innerHTML += `<p><strong>Assistant :</strong> ${data.answer}</p>`;
+} catch (e) {
+  output.innerHTML += `<p style='color:red;'>Erreur de communication</p>`;
+  console.error("Erreur :", e);
+}
+
 
       output.scrollTop = output.scrollHeight;
     }
